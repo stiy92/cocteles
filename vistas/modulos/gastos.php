@@ -102,7 +102,9 @@ if($_SESSION["perfil"] == "Vendedor"){
 
                       echo '
                       <button class="btn btn-warning btnEditarGasto" data-toggle="modal" data-target="#modalEditarGasto" idGasto="'.$value["id"].'"><i class="fa fa-pencil"></i></button>
-                      <button class="btn btn-danger btnEliminarGasto" idGasto="'.$value["id"].'"><i class="fa fa-times"></i></button>';
+                      ';
+                    // Boton para eliminar gasto
+                    // <button class="btn btn-danger btnEliminarGasto" idGasto="'.$value["id"].'"><i class="fa fa-times"></i></button>
 
                     }
 
