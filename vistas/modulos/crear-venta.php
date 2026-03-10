@@ -356,28 +356,28 @@
 
             <?php
 
-           if (isset($_GET["idImprimirVenta"])) {
-             $imprimirVenta = new ControladorVentas();
-             $imprimirVenta->ctrImprimirVenta();
-           }
+          //  if (isset($_GET["idImprimirVenta"])) {
+          //    $imprimirVenta = new ControladorVentas();
+          //    $imprimirVenta->ctrImprimirVenta();
+          //  }
 
             ?>
 
             <?php
 
-            if (isset($_GET["idImprimirVenta2"])) {
-              $imprimirVenta = new ControladorVentas();
-              $imprimirVenta->ctrImprimirVenta2();
-            }
+            // if (isset($_GET["idImprimirVenta2"])) {
+            //   $imprimirVenta = new ControladorVentas();
+            //   $imprimirVenta->ctrImprimirVenta2();
+            // }
 
              ?>
 
            <?php
 
-           if (isset($_GET["idImprimirVenta3"])) {
-             $imprimirVenta = new ControladorVentas();
-             $imprimirVenta->ctrImprimirVenta3();
-           }
+          //  if (isset($_GET["idImprimirVenta3"])) {
+          //    $imprimirVenta = new ControladorVentas();
+          //    $imprimirVenta->ctrImprimirVenta3();
+          //  }
 
             ?>           
 

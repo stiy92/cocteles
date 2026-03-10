@@ -346,7 +346,8 @@ class ControladorVentas{
 						                     "metodo_pago"=>$_POST["listaMetodoPago"],
 						                     "descuento"=>$_POST["nuevodescuento"],
 											"idmesa"=>$_POST["seleccionarMesa"],
-										    "observaciones" => $_POST["observaciones"]);
+										    // "observaciones" => $_POST["observaciones"]
+											);
                   
 			                  $respuesta = ModeloVentas::mdlIngresarVenta($tabla, $datos);
                   

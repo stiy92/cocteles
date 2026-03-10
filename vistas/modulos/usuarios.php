@@ -13,7 +13,7 @@ if($_SESSION["perfil"] == "Especial" || $_SESSION["perfil"] == "Vendedor"){
 }
 
 ?>
-<div class="content-wrapper" style="background-image: url('vistas/img/plantilla/8.jpg'); background-size: cover; background-position: center; background-repeat: no-repeat;">
+<div class="content-wrapper" style="background-image: url('vistas/img/plantilla/usuarios.jpg'); background-size: cover; background-position: center; background-repeat: no-repeat;">
 
 <section class="content-header" style="color: white">
   
