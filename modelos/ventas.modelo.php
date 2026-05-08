@@ -332,59 +332,127 @@ class ModeloVentas{
 	=============================================*/	
 
 	static public function mdlRangoFechasVentas($tabla, $fechaInicial, $fechaFinal){
+
+	 try {
+
+        // 🔹 Si no vienen fechas → usar rango operativo automático
+        if (empty($fechaInicial) && empty($fechaFinal)) {
+
+            $ahora = new DateTime();
+            $horaActual = $ahora->format('H:i:s');
+
+            if ($horaActual >= '17:00:00') {
+
+                // Desde hoy 17:00 hasta mañana 16:59
+                $inicio = new DateTime();
+                $inicio->setTime(17, 0, 0);
+
+                $fin = new DateTime();
+                $fin->modify('+1 day')->setTime(16, 59, 59);
+
+            } else {
+
+                // Desde ayer 17:00 hasta hoy 16:59
+                $inicio = new DateTime();
+                $inicio->modify('-1 day')->setTime(17, 0, 0);
+
+                $fin = new DateTime();
+                $fin->setTime(16, 59, 59);
+            }
+
+        } else {
+
+            // 🔹 Si vienen fechas manuales
+            $inicio = new DateTime($fechaInicial);
+            $inicio->setTime(17, 0, 0);
+
+            $fin = new DateTime($fechaFinal);
+            $fin->modify('+1 day')->setTime(16, 59, 59);
+        }
+
+        // 🔹 Formatear fechas
+        $fechaInicial = $inicio->format('Y-m-d H:i:s');
+        $fechaFinal   = $fin->format('Y-m-d H:i:s');
+
+        // 🔹 Consulta
+        $stmt = Conexion::conectar()->prepare("
+            SELECT * 
+            FROM $tabla 
+            WHERE fecha BETWEEN :fechaInicial AND :fechaFinal
+            ORDER BY id DESC
+        ");
+
+        $stmt->bindParam(":fechaInicial", $fechaInicial, PDO::PARAM_STR);
+        $stmt->bindParam(":fechaFinal", $fechaFinal, PDO::PARAM_STR);
+
+        $stmt->execute();
+
+        return $stmt->fetchAll();
+
+    } catch (Exception $e) {
+
+        echo "Error: " . $e->getMessage();
+
+    } finally {
+
+        if ($stmt) {
+            $stmt->closeCursor();
+            $stmt = null;
+        }
+    }
         
-		if($fechaInicial == null){
+		// if($fechaInicial == null){
 
-			$stmt = Conexion::conectar()->prepare("SELECT * FROM $tabla WHERE DATE(fecha) = CURRENT_DATE() ORDER BY id DESC");
+		// 	$stmt = Conexion::conectar()->prepare("SELECT * FROM $tabla WHERE DATE(fecha) = CURRENT_DATE() ORDER BY id DESC");
 
-			$stmt -> execute();
+		// 	$stmt -> execute();
 
-			return $stmt -> fetchAll();	 
+		// 	return $stmt -> fetchAll();	 
 
 
-		}else if($fechaInicial == $fechaFinal){
-			$fechaInicial .= ' 00:00:01';
-            $fechaFinal .= ' 23:59:59';
-			$stmt = Conexion::conectar()->prepare("SELECT * FROM $tabla WHERE fecha BETWEEN :fechaInicial AND :fechaFinal");
+		// }else if($fechaInicial == $fechaFinal){
+		// 	$fechaInicial .= ' 00:00:01';
+        //     $fechaFinal .= ' 23:59:59';
+		// 	$stmt = Conexion::conectar()->prepare("SELECT * FROM $tabla WHERE fecha BETWEEN :fechaInicial AND :fechaFinal");
 
-			$stmt->bindParam(":fechaInicial", $fechaInicial, PDO::PARAM_STR);
+		// 	$stmt->bindParam(":fechaInicial", $fechaInicial, PDO::PARAM_STR);
             
-			$stmt->bindParam(":fechaFinal", $fechaFinal, PDO::PARAM_STR);
+		// 	$stmt->bindParam(":fechaFinal", $fechaFinal, PDO::PARAM_STR);
 
-			$stmt -> execute();
+		// 	$stmt -> execute();
 
-			return $stmt -> fetchAll();
+		// 	return $stmt -> fetchAll();
 
-		}else{
-            $fechaFinal .= ' 23:59:59';
+		// }else{
+        //     $fechaFinal .= ' 23:59:59';
 
-			$fechaActual = new DateTime();
-			$fechaActual ->add(new DateInterval("P1D"));
-			$fechaActualMasUno = $fechaActual->format("Y-m-d");
+		// 	$fechaActual = new DateTime();
+		// 	$fechaActual ->add(new DateInterval("P1D"));
+		// 	$fechaActualMasUno = $fechaActual->format("Y-m-d");
 
-			$fechaFinal2 = new DateTime($fechaFinal);
-			$fechaFinal2 ->add(new DateInterval("P1D"));
-			$fechaFinalMasUno = $fechaFinal2->format("Y-m-d");
+		// 	$fechaFinal2 = new DateTime($fechaFinal);
+		// 	$fechaFinal2 ->add(new DateInterval("P1D"));
+		// 	$fechaFinalMasUno = $fechaFinal2->format("Y-m-d");
 
-			if($fechaFinalMasUno == $fechaActualMasUno){
+		// 	if($fechaFinalMasUno == $fechaActualMasUno){
 
-				$fechaInicial .= ' 00:00:01';
-                $fechaFinalMasUno .= ' 23:59:59';
-				$stmt = Conexion::conectar()->prepare("SELECT * FROM $tabla WHERE fecha BETWEEN '$fechaInicial' AND '$fechaFinalMasUno'");
+		// 		$fechaInicial .= ' 00:00:01';
+        //         $fechaFinalMasUno .= ' 23:59:59';
+		// 		$stmt = Conexion::conectar()->prepare("SELECT * FROM $tabla WHERE fecha BETWEEN '$fechaInicial' AND '$fechaFinalMasUno'");
 
-			}else{
-				$fechaInicial .= ' 00:00:01';
-                $fechaFinal .= ' 23:59:59';
+		// 	}else{
+		// 		$fechaInicial .= ' 00:00:01';
+        //         $fechaFinal .= ' 23:59:59';
 
-				$stmt = Conexion::conectar()->prepare("SELECT * FROM $tabla WHERE fecha BETWEEN '$fechaInicial' AND '$fechaFinal'");
+		// 		$stmt = Conexion::conectar()->prepare("SELECT * FROM $tabla WHERE fecha BETWEEN '$fechaInicial' AND '$fechaFinal'");
 
-			}
+		// 	}
 		
-			$stmt -> execute();
+		// 	$stmt -> execute();
 
-			return $stmt -> fetchAll();
+		// 	return $stmt -> fetchAll();
 
-		}
+		// }
 
 	}
 
@@ -407,59 +475,126 @@ class ModeloVentas{
 	=============================================*/	
 
 	static public function mdlRangoFechasVentas2($tabla, $fechaInicial, $fechaFinal){
-        
-		if($fechaInicial == null){
+        try {
 
-			$stmt = Conexion::conectar()->prepare("SELECT * FROM $tabla WHERE DATE(fecha) = CURRENT_DATE() AND metodo_pago IN ('Efectivo','Nequi') ORDER BY id DESC");
+        // 🔹 Si no vienen fechas → usar rango operativo automático
+        if (empty($fechaInicial) && empty($fechaFinal)) {
 
-			$stmt -> execute();
+            $ahora = new DateTime();
+            $horaActual = $ahora->format('H:i:s');
 
-			return $stmt -> fetchAll();	 
+            if ($horaActual >= '17:00:00') {
+
+                // Desde hoy 17:00 hasta mañana 16:59
+                $inicio = new DateTime();
+                $inicio->setTime(17, 0, 0);
+
+                $fin = new DateTime();
+                $fin->modify('+1 day')->setTime(16, 59, 59);
+
+            } else {
+
+                // Desde ayer 17:00 hasta hoy 16:59
+                $inicio = new DateTime();
+                $inicio->modify('-1 day')->setTime(17, 0, 0);
+
+                $fin = new DateTime();
+                $fin->setTime(16, 59, 59);
+            }
+
+        } else {
+
+            // 🔹 Si vienen fechas manuales
+            $inicio = new DateTime($fechaInicial);
+            $inicio->setTime(17, 0, 0);
+
+            $fin = new DateTime($fechaFinal);
+            $fin->modify('+1 day')->setTime(16, 59, 59);
+        }
+
+        // 🔹 Formatear fechas
+        $fechaInicial = $inicio->format('Y-m-d H:i:s');
+        $fechaFinal   = $fin->format('Y-m-d H:i:s');
+
+        // 🔹 Consulta
+        $stmt = Conexion::conectar()->prepare("
+            SELECT * 
+            FROM $tabla 
+            WHERE fecha BETWEEN :fechaInicial AND :fechaFinal
+            AND metodo_pago IN ('Efectivo','Nequi')
+            ORDER BY id DESC
+        ");
+
+        $stmt->bindParam(":fechaInicial", $fechaInicial, PDO::PARAM_STR);
+        $stmt->bindParam(":fechaFinal", $fechaFinal, PDO::PARAM_STR);
+
+        $stmt->execute();
+
+        return $stmt->fetchAll();
+
+    } catch (Exception $e) {
+
+        echo "Error: " . $e->getMessage();
+
+    } finally {
+
+        if ($stmt) {
+            $stmt->closeCursor();
+            $stmt = null;
+        }
+    }
+		// if($fechaInicial == null){
+
+		// 	$stmt = Conexion::conectar()->prepare("SELECT * FROM $tabla WHERE DATE(fecha) = CURRENT_DATE() AND metodo_pago IN ('Efectivo','Nequi') ORDER BY id DESC");
+
+		// 	$stmt -> execute();
+
+		// 	return $stmt -> fetchAll();	 
 
 
-		}else if($fechaInicial == $fechaFinal){
-			$fechaInicial .= ' 00:00:01';
-            $fechaFinal .= ' 23:59:59';
-			$stmt = Conexion::conectar()->prepare("SELECT * FROM $tabla WHERE fecha BETWEEN :fechaInicial AND :fechaFinal AND metodo_pago IN ('Efectivo','Nequi')");
+		// }else if($fechaInicial == $fechaFinal){
+		// 	$fechaInicial .= ' 00:00:01';
+        //     $fechaFinal .= ' 23:59:59';
+		// 	$stmt = Conexion::conectar()->prepare("SELECT * FROM $tabla WHERE fecha BETWEEN :fechaInicial AND :fechaFinal AND metodo_pago IN ('Efectivo','Nequi')");
 
-			$stmt->bindParam(":fechaInicial", $fechaInicial, PDO::PARAM_STR);
+		// 	$stmt->bindParam(":fechaInicial", $fechaInicial, PDO::PARAM_STR);
             
-			$stmt->bindParam(":fechaFinal", $fechaFinal, PDO::PARAM_STR);
+		// 	$stmt->bindParam(":fechaFinal", $fechaFinal, PDO::PARAM_STR);
 
-			$stmt -> execute();
+		// 	$stmt -> execute();
 
-			return $stmt -> fetchAll();
+		// 	return $stmt -> fetchAll();
 
-		}else{
-            $fechaFinal .= ' 23:59:59';
+		// }else{
+        //     $fechaFinal .= ' 23:59:59';
 
-			$fechaActual = new DateTime();
-			$fechaActual ->add(new DateInterval("P1D"));
-			$fechaActualMasUno = $fechaActual->format("Y-m-d");
+		// 	$fechaActual = new DateTime();
+		// 	$fechaActual ->add(new DateInterval("P1D"));
+		// 	$fechaActualMasUno = $fechaActual->format("Y-m-d");
 
-			$fechaFinal2 = new DateTime($fechaFinal);
-			$fechaFinal2 ->add(new DateInterval("P1D"));
-			$fechaFinalMasUno = $fechaFinal2->format("Y-m-d");
+		// 	$fechaFinal2 = new DateTime($fechaFinal);
+		// 	$fechaFinal2 ->add(new DateInterval("P1D"));
+		// 	$fechaFinalMasUno = $fechaFinal2->format("Y-m-d");
 
-			if($fechaFinalMasUno == $fechaActualMasUno){
+		// 	if($fechaFinalMasUno == $fechaActualMasUno){
 
-				$fechaInicial .= ' 00:00:01';
-                $fechaFinalMasUno .= ' 23:59:59';
-				$stmt = Conexion::conectar()->prepare("SELECT * FROM $tabla WHERE fecha BETWEEN '$fechaInicial' AND '$fechaFinalMasUno' AND metodo_pago IN ('Efectivo','Nequi')");
+		// 		$fechaInicial .= ' 00:00:01';
+        //         $fechaFinalMasUno .= ' 23:59:59';
+		// 		$stmt = Conexion::conectar()->prepare("SELECT * FROM $tabla WHERE fecha BETWEEN '$fechaInicial' AND '$fechaFinalMasUno' AND metodo_pago IN ('Efectivo','Nequi')");
 
-			}else{
-				$fechaInicial .= ' 00:00:01';
-                $fechaFinal .= ' 23:59:59';
+		// 	}else{
+		// 		$fechaInicial .= ' 00:00:01';
+        //         $fechaFinal .= ' 23:59:59';
 
-				$stmt = Conexion::conectar()->prepare("SELECT * FROM $tabla WHERE fecha BETWEEN '$fechaInicial' AND '$fechaFinal' AND metodo_pago IN ('Efectivo','Nequi')");
+		// 		$stmt = Conexion::conectar()->prepare("SELECT * FROM $tabla WHERE fecha BETWEEN '$fechaInicial' AND '$fechaFinal' AND metodo_pago IN ('Efectivo','Nequi')");
 
-			}
+		// 	}
 		
-			$stmt -> execute();
+		// 	$stmt -> execute();
 
-			return $stmt -> fetchAll();
+		// 	return $stmt -> fetchAll();
 
-		}
+		// }
 
 	}
 	
@@ -471,14 +606,40 @@ class ModeloVentas{
 	static public function mdlRangoventasf($tabla, $fechaInicial, $fechaFinal){	
 		try {
 			 // Si las fechas son nulas, usar el día actual
-			 if (is_null($fechaInicial) && is_null($fechaFinal)) {
-				$fechaInicial = date('Y-m-d') . ' 00:00:01';
-				$fechaFinal = date('Y-m-d') . ' 23:59:59';
-			} else {
-				// Agregar las horas para abarcar el día completo
-				$fechaInicial .= ' 00:00:01';
-				$fechaFinal .= ' 23:59:59';
-			}
+			 if (empty($fechaInicial) && empty($fechaFinal)) {
+
+                $ahora = new DateTime();
+                $horaActual = $ahora->format('H:i:s');
+
+                if ($horaActual >= '17:00:00') {
+                    // Después de las 5 PM
+                    $inicio = new DateTime();
+                    $inicio->setTime(17, 0, 0);
+
+                    $fin = new DateTime();
+                    $fin->modify('+1 day')->setTime(16, 59, 59);
+                } else {
+                    // Antes de las 5 PM
+                    $inicio = new DateTime();
+                    $inicio->modify('-1 day')->setTime(17, 0, 0);
+
+                    $fin = new DateTime();
+                    $fin->setTime(16, 59, 59);
+                }
+
+            } else {
+
+                // Cuando el usuario envía fechas (esto está bien como lo tenías)
+                $inicio = new DateTime($fechaInicial);
+                $inicio->setTime(17, 0, 0);
+
+                $fin = new DateTime($fechaFinal);
+                $fin->modify('+1 day')->setTime(16, 59, 59);
+            }
+
+               $fechaInicial = $inicio->format('Y-m-d H:i:s');
+               $fechaFinal = $fin->format('Y-m-d H:i:s');
+
 			// Preparar la consulta con parámetros de fechas
 			$stmt = Conexion::conectar()->prepare("SELECT SUM(total) as total FROM $tabla WHERE metodo_pago = 'Efectivo' AND fecha BETWEEN :fechaInicial AND :fechaFinal");
 	
@@ -545,14 +706,39 @@ class ModeloVentas{
 		try {
 			 // Si las fechas son nulas, usar el día actual
 			 if (empty($fechaInicial) && empty($fechaFinal)) {
-				$fechaInicial = date('Y-m-d') . ' 00:00:01';
-				$fechaFinal = date('Y-m-d') . ' 23:59:59';
-			} else {
-				// Agregar las horas para abarcar el día completo
-				$fechaInicial .= ' 00:00:01';
-				$fechaFinal .= ' 23:59:59';
-			}
-	
+
+                $ahora = new DateTime();
+                $horaActual = $ahora->format('H:i:s');
+
+                if ($horaActual >= '17:00:00') {
+                    // Después de las 5 PM
+                    $inicio = new DateTime();
+                    $inicio->setTime(17, 0, 0);
+
+                    $fin = new DateTime();
+                    $fin->modify('+1 day')->setTime(16, 59, 59);
+                } else {
+                    // Antes de las 5 PM
+                    $inicio = new DateTime();
+                    $inicio->modify('-1 day')->setTime(17, 0, 0);
+
+                    $fin = new DateTime();
+                    $fin->setTime(16, 59, 59);
+                }
+
+            } else {
+
+                // Cuando el usuario envía fechas (esto está bien como lo tenías)
+                $inicio = new DateTime($fechaInicial);
+                $inicio->setTime(17, 0, 0);
+
+                $fin = new DateTime($fechaFinal);
+                $fin->modify('+1 day')->setTime(16, 59, 59);
+            }
+
+               $fechaInicial = $inicio->format('Y-m-d H:i:s');
+               $fechaFinal = $fin->format('Y-m-d H:i:s');
+
 			// Preparar la consulta con parámetros de fechas
 			$stmt = Conexion::conectar()->prepare("SELECT SUM(total) as total FROM $tabla WHERE metodo_pago = 'Crédito' AND fecha BETWEEN :fechaInicial AND :fechaFinal");
 	
@@ -585,13 +771,38 @@ class ModeloVentas{
 		try {
 			 // Si las fechas son nulas, usar el día actual
 			 if (empty($fechaInicial) && empty($fechaFinal)) {
-				$fechaInicial = date('Y-m-d') . ' 00:00:01';
-				$fechaFinal = date('Y-m-d') . ' 23:59:59';
-			} else {
-				// Agregar las horas para abarcar el día completo
-				$fechaInicial .= ' 00:00:01';
-				$fechaFinal .= ' 23:59:59';
-			}
+
+                $ahora = new DateTime();
+                $horaActual = $ahora->format('H:i:s');
+
+                if ($horaActual >= '17:00:00') {
+                    // Después de las 5 PM
+                    $inicio = new DateTime();
+                    $inicio->setTime(17, 0, 0);
+
+                    $fin = new DateTime();
+                    $fin->modify('+1 day')->setTime(16, 59, 59);
+                } else {
+                    // Antes de las 5 PM
+                    $inicio = new DateTime();
+                    $inicio->modify('-1 day')->setTime(17, 0, 0);
+
+                    $fin = new DateTime();
+                    $fin->setTime(16, 59, 59);
+                }
+
+            } else {
+
+                // Cuando el usuario envía fechas (esto está bien como lo tenías)
+                $inicio = new DateTime($fechaInicial);
+                $inicio->setTime(17, 0, 0);
+
+                $fin = new DateTime($fechaFinal);
+                $fin->modify('+1 day')->setTime(16, 59, 59);
+            }
+
+               $fechaInicial = $inicio->format('Y-m-d H:i:s');
+               $fechaFinal = $fin->format('Y-m-d H:i:s');
 			// Preparar la consulta con parámetros de fechas
 			$stmt = Conexion::conectar()->prepare("SELECT SUM(monto_abonado) as total FROM $tabla WHERE metodo_pago = 'Crédito' AND fecha BETWEEN :fechaInicial AND :fechaFinal");
 	
@@ -625,13 +836,38 @@ class ModeloVentas{
 		try {
 			 // Si las fechas son nulas, usar el día actual
 			 if (empty($fechaInicial) && empty($fechaFinal)) {
-				$fechaInicial = date('Y-m-d') . ' 00:00:01';
-				$fechaFinal = date('Y-m-d') . ' 23:59:59';
-			} else {
-				// Agregar las horas para abarcar el día completo
-				$fechaInicial .= ' 00:00:01';
-				$fechaFinal .= ' 23:59:59';
-			}
+
+                $ahora = new DateTime();
+                $horaActual = $ahora->format('H:i:s');
+
+                if ($horaActual >= '17:00:00') {
+                    // Después de las 5 PM
+                    $inicio = new DateTime();
+                    $inicio->setTime(17, 0, 0);
+
+                    $fin = new DateTime();
+                    $fin->modify('+1 day')->setTime(16, 59, 59);
+                } else {
+                    // Antes de las 5 PM
+                    $inicio = new DateTime();
+                    $inicio->modify('-1 day')->setTime(17, 0, 0);
+
+                    $fin = new DateTime();
+                    $fin->setTime(16, 59, 59);
+                }
+
+            } else {
+
+                // Cuando el usuario envía fechas (esto está bien como lo tenías)
+                $inicio = new DateTime($fechaInicial);
+                $inicio->setTime(17, 0, 0);
+
+                $fin = new DateTime($fechaFinal);
+                $fin->modify('+1 day')->setTime(16, 59, 59);
+            }
+
+               $fechaInicial = $inicio->format('Y-m-d H:i:s');
+               $fechaFinal = $fin->format('Y-m-d H:i:s');
 	
 			// Preparar la consulta con parámetros de fechas
 			$stmt = Conexion::conectar()->prepare("SELECT SUM(total) as total FROM $tabla WHERE metodo_pago = 'Nequi' AND fecha BETWEEN :fechaInicial AND :fechaFinal");
@@ -664,7 +900,20 @@ class ModeloVentas{
 
 	static public function mdlRangoF($tabla){
 
-			$stmt = Conexion::conectar()->prepare("SELECT * FROM $tabla WHERE DATE(fecha) >= DATE( NOW()) AND metodo_pago IN ('Efectivo','Nequi') ORDER BY id DESC");
+			$stmt = Conexion::conectar()->prepare("SELECT * FROM $tabla WHERE fecha BETWEEN 
+        CASE 
+            WHEN TIME(NOW()) >= '17:00:00' 
+                THEN CONCAT(CURDATE(), ' 17:00:00')
+            ELSE CONCAT(DATE_SUB(CURDATE(), INTERVAL 1 DAY), ' 17:00:00')
+        END
+    AND
+        CASE 
+            WHEN TIME(NOW()) >= '17:00:00' 
+                THEN CONCAT(DATE_ADD(CURDATE(), INTERVAL 1 DAY), ' 16:59:59')
+            ELSE CONCAT(CURDATE(), ' 16:59:59')
+        END
+    AND metodo_pago IN ('Efectivo','Nequi')
+    ORDER BY id DESC");
 
 			$stmt -> execute();
 

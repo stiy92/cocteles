@@ -157,13 +157,38 @@ class ModeloGastos{
 		try {
 			// Si las fechas son nulas, usar el día actual
 			if (empty($fechaInicial) && empty($fechaFinal)) {
-				$fechaInicial = date('Y-m-d') . ' 00:00:01';
-				$fechaFinal = date('Y-m-d') . ' 23:59:59';
-			} else {
-				// Agregar las horas para abarcar el día completo
-				$fechaInicial .= ' 00:00:01';
-				$fechaFinal .= ' 23:59:59';
-			}
+
+                $ahora = new DateTime();
+                $horaActual = $ahora->format('H:i:s');
+
+                if ($horaActual >= '17:00:00') {
+                    // Después de las 5 PM
+                    $inicio = new DateTime();
+                    $inicio->setTime(17, 0, 0);
+
+                    $fin = new DateTime();
+                    $fin->modify('+1 day')->setTime(16, 59, 59);
+                } else {
+                    // Antes de las 5 PM
+                    $inicio = new DateTime();
+                    $inicio->modify('-1 day')->setTime(17, 0, 0);
+
+                    $fin = new DateTime();
+                    $fin->setTime(16, 59, 59);
+                }
+
+            } else {
+
+                // Cuando el usuario envía fechas (esto está bien como lo tenías)
+                $inicio = new DateTime($fechaInicial);
+                $inicio->setTime(17, 0, 0);
+
+                $fin = new DateTime($fechaFinal);
+                $fin->modify('+1 day')->setTime(16, 59, 59);
+            }
+
+               $fechaInicial = $inicio->format('Y-m-d H:i:s');
+               $fechaFinal = $fin->format('Y-m-d H:i:s');
 	
 			// Preparar la consulta con parámetros de fechas
 			$stmt = Conexion::conectar()->prepare("SELECT SUM(valor) as total FROM $tabla WHERE fecha BETWEEN :fechaInicial AND :fechaFinal");
